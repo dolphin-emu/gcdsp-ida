@@ -1,0 +1,7 @@
+* Build a tool to parse Dolphin's DSPTables and gen our instructions?
+* Figure out a way to represent the instruction operands
+* Output operands
+* Emulate operands
+* Extended postfix opcodes
+* How to handle more than 6 operands if we need it?
+  MULCAC'LDNM is 6 operands, don't know if there is more
