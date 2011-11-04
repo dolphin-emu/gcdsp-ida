@@ -7,14 +7,14 @@ An IDAPython processor module for the GC/Wii DSP.
 Copyright (C) 2011 Pierre Bourdon <delroth@lse.epita.fr>
 Copyright (C) 2011 Stephane Sezer <stephane@lse.epita.fr>
 
-Licensed under the New BSD License, see the LICENSE file at the root of this
+Licensed under the GPLv2 license, see the LICENSE file at the root of this
 repository.
 """
 from idaapi import *
 
 GREETINGS_STRING = """\
 GC/Wii DSP processor for IDA (C) 2011 LSE (http://www.lse.epita.fr/) - \
-licensed under the New BSD License\
+licensed under the GPLv2 license\
 """
 
 class Instr(object):
