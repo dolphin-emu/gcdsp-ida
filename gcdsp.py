@@ -12,6 +12,10 @@ repository.
 """
 from idaapi import *
 
+GREETINGS_STRING = """
+GC/Wii DSP processor for IDA (C) 2011 LSE (http://lse.epita.fr/)
+"""
+
 class Instr(object):
     def __init__(self, name, uses=[], changes=[], stops=False, calls=False,
                  jumps=False, shifts=False, hll=False):
@@ -145,8 +149,16 @@ class GCDSPProcessor(processor_t):
         self.regFirstSreg = self.regCodeSreg = self.reg_ids["CS"]
         self.regLastSreg = self.regDataSreg = self.reg_ids["DS"]
 
+    def notify_init(self, idp_file):
+        """Called at module initialization."""
+        cvar.inf.mf = True  # set to big endian... wtf
+        cvar.inf.wide_high_byte_first = True  # big endian for 16b bytes too
+        return True
+
     def ana(self):
         """Analyze one instruction and fill the "cmd" global value."""
+        print GREETINGS_STRING
+
         return
 
     def emu(self):
