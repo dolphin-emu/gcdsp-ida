@@ -13,8 +13,8 @@ repository.
 from idaapi import *
 
 GREETINGS_STRING = """\
-GC/Wii DSP processor for IDA (C) 2011 LSE (http://lse.epita.fr/) - licensed \
-under the New BSD License\
+GC/Wii DSP processor for IDA (C) 2011 LSE (http://www.lse.epita.fr/) - \
+licensed under the New BSD License\
 """
 
 class Instr(object):
