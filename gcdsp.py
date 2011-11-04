@@ -18,9 +18,11 @@ under the New BSD License\
 """
 
 class Instr(object):
-    def __init__(self, name, uses=[], changes=[], stops=False, calls=False,
-                 jumps=False, shifts=False, hll=False):
+    def __init__(self, name, opcode, mask=0xFFFF, uses=[], changes=[],
+                 stops=False, calls=False, jumps=False, shifts=False,
+                 hll=False):
         self.name = name
+
         self.uses = uses
         self.changes = changes
         self.stops = stops
@@ -28,6 +30,13 @@ class Instr(object):
         self.jumps = jumps
         self.shifts = shifts
         self.hll = hll
+
+        self.opcode = opcode
+        self.mask = mask
+
+    def __str__(self):
+        return "<Instr: %s (%04X & %04X)>" % (self.name, self.opcode,
+                                              self.mask)
 
     @property
     def flags(self):
@@ -115,9 +124,9 @@ class GCDSPProcessor(processor_t):
     ]
 
     instrs_list = [
-        Instr("NOP"),
-        Instr("CALL", uses=[0], calls=True),
-        Instr("RET", stops=True),
+        Instr("NOP",    0x0000, 0xFFFC),
+        Instr("CALL",   0x02BF, 0xFFFF, uses=[0], calls=True),
+        Instr("RET",    0x02DF, 0xFFFF, stops=True),
     ]
 
     def __init__(self):
@@ -138,6 +147,14 @@ class GCDSPProcessor(processor_t):
         self.instrs_ids = {}
         for i, instr in enumerate(self.instrs_list):
             self.instrs_ids[instr.name] = i
+            instr.id = i
+
+        self.instrs_opcode = [None] * 0x10000
+        for i in xrange(0x10000):
+            for instr in self.instrs_list:
+                if (i & instr.mask) == instr.opcode:
+                    self.instrs_opcode[i] = instr
+                    break
 
     def _init_registers(self):
         """Setup registers index and special register values."""
@@ -161,23 +178,46 @@ class GCDSPProcessor(processor_t):
         if ok:
             print GREETINGS_STRING
 
+    def _read_cmd_byte(self):
+        ea = self.cmd.ea + self.cmd.size
+        byte = get_full_byte(ea)
+        self.cmd.size += 1
+        return byte
+
     def ana(self):
-        """Analyze one instruction and fill the "cmd" global value."""
-        return
+        """Analyze one instruction and fill the "cmd" instance member."""
+        byte = self._read_cmd_byte()
+        instr = self.instrs_opcode[byte]
+        if instr is None:
+            return 0
+
+        self.cmd.itype = instr.id
+        return self.cmd.size
 
     def emu(self):
         """Emulate instruction behavior and create x-refs, interpret operand
         values, etc."""
-        return
+        instr = self.instrs_list[self.cmd.itype]
+
+        if not instr.stops:  # add a link to next instr if code continues
+            ua_add_cref(0, self.cmd.ea + self.cmd.size, fl_F)
+
+        return True
 
     def outop(self, op):
         """Generates text representation of an instruction operand."""
-        return
+        return True
 
     def out(self):
-        """Generates text representation of an instruction in the "cmd" global
-        value."""
-        return
+        """Generates text representation of an instruction in the "cmd" inst
+        member."""
+        buf = idaapi.init_output_buffer(1024)
+        OutMnem(15)  # max width = 15
+
+        out_one_operand(0)
+
+        cvar.gl_comm = 1  # allow comments at end of line
+        MakeLine(buf)
 
 def PROCESSOR_ENTRY():
     return GCDSPProcessor()
