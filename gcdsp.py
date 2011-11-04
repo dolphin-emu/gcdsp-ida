@@ -12,8 +12,9 @@ repository.
 """
 from idaapi import *
 
-GREETINGS_STRING = """
-GC/Wii DSP processor for IDA (C) 2011 LSE (http://lse.epita.fr/)
+GREETINGS_STRING = """\
+GC/Wii DSP processor for IDA (C) 2011 LSE (http://lse.epita.fr/) - licensed \
+under the New BSD License\
 """
 
 class Instr(object):
@@ -155,10 +156,13 @@ class GCDSPProcessor(processor_t):
         cvar.inf.wide_high_byte_first = True  # big endian for 16b bytes too
         return True
 
+    def notify_endbinary(self, ok):
+        """Called when the binary finished loading."""
+        if ok:
+            print GREETINGS_STRING
+
     def ana(self):
         """Analyze one instruction and fill the "cmd" global value."""
-        print GREETINGS_STRING
-
         return
 
     def emu(self):
