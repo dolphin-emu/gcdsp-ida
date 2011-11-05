@@ -49,7 +49,7 @@ def gen_from_text(text):
                 continue
             else:
                 fields = line.replace('{', '[').replace('}', ']').split(',')
-                fields = fields[0:3] + fields[5:-4] + [fields[-3]]
+                fields = fields[0:3] + fields[5:-5] + [fields[-4]]
                 fields = map(str.strip, fields)
                 fields = ','.join(fields) + ']'
                 fields = fields.replace('true', 'True')

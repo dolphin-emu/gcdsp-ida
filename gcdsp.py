@@ -55,7 +55,7 @@ class OpType:
 execfile(os.path.join(os.path.dirname(__file__), 'gcdsp_generated.py'))
 
 class Instr(object):
-    def __init__(self, name, opcode, mask=0xFFFF, operands=[],
+    def __init__(self, name, opcode, mask, size, operands=[],
                  stops=False, calls=False, jumps=False, shifts=False,
                  hll=False):
         self.name = name
@@ -69,6 +69,7 @@ class Instr(object):
 
         self.opcode = opcode
         self.mask = mask
+        self.size = size
 
     def __str__(self):
         return "<Instr: %s (%04X & %04X)>" % (self.name, self.opcode,
@@ -157,12 +158,6 @@ class GCDSPProcessor(processor_t):
         "CS", "DS"
     ]
 
-    instrs_list = [
-        Instr("NOP",    0x0000, 0xFFFC, []),
-        Instr("CALL",   0x02BF, 0xFFFF, [], calls=True),
-        Instr("RET",    0x02DF, 0xFFFF, [], stops=True),
-    ]
-
     def __init__(self):
         processor_t.__init__(self)
         self._init_instructions()
@@ -170,6 +165,13 @@ class GCDSPProcessor(processor_t):
 
     def _init_instructions(self):
         """Setup instructions parameters for IDA."""
+        self.instrs_list = []
+        for op in opcodes:
+            # TODO: handle extended opcodes
+            self.instrs_list.append(
+                Instr(op[0], op[1], op[2], op[3], op[5], stops=op[7])
+            )
+
         self.instruc = [{ "name": i.name, "feature": i.flags }
                         for i in self.instrs_list]
         self.instruc_end = len(self.instruc)
@@ -183,6 +185,7 @@ class GCDSPProcessor(processor_t):
             self.instrs_ids[instr.name] = i
             instr.id = i
 
+        # TODO: optimize?
         self.instrs_opcode = [None] * 0x10000
         for i in xrange(0x10000):
             for instr in self.instrs_list:
@@ -226,6 +229,7 @@ class GCDSPProcessor(processor_t):
             return 0
 
         self.cmd.itype = instr.id
+        self.cmd.size = instr.size
         return self.cmd.size
 
     def emu(self):
