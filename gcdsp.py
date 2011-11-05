@@ -170,7 +170,11 @@ class GCDSPProcessor(processor_t):
         """Setup instructions parameters for IDA."""
         self.instrs_list = []
         for op in opcodes:
-            instr = Instr(op[0], op[1], op[2], op[3], op[5], stops=op[7])
+            stops = op[0] in ("RET", "RTI", "HALT", "JMP", "JMPR")
+            jumps = op[0].startswith("J")
+            calls = op[0].startswith("CALL")
+            instr = Instr(op[0], op[1], op[2], op[3], op[5],
+                          stops=stops, jumps=jumps, calls=calls)
             self.instrs_list.append(instr)
 
             if op[6]:  # extended
@@ -183,7 +187,8 @@ class GCDSPProcessor(processor_t):
                     new_mask = instr.mask | ext[2]
                     self.instrs_list.append(
                         Instr(new_name, new_opcode, new_mask, instr.size,
-                              instr.operands, ext_operands=ext[5])
+                              instr.operands, ext_operands=ext[5],
+                              stops=stops, jumps=jumps, calls=calls)
                     )
 
                 if ext_7bit:
