@@ -55,12 +55,15 @@ class OpType:
 execfile(os.path.join(os.path.dirname(__file__), 'gcdsp_generated.py'))
 
 class Instr(object):
-    def __init__(self, name, opcode, mask, size, operands=[],
+    def __init__(self, name, opcode, mask, size, operands=[], ext_operands=[],
                  stops=False, calls=False, jumps=False, shifts=False,
                  hll=False):
         self.name = name
 
         self.operands = operands
+        self.ext_operands = ext_operands
+        self.all_operands = operands + ext_operands
+
         self.stops = stops
         self.calls = calls
         self.jumps = jumps
@@ -78,7 +81,7 @@ class Instr(object):
     @property
     def flags(self):
         ret = 0
-        for i, operand in enumerate(self.operands):
+        for i, operand in enumerate(self.all_operands):
             ret |= CF_USE1 << i  # TODO: CF_CHG ?
         if self.stops:
             ret |= CF_STOP
@@ -167,10 +170,26 @@ class GCDSPProcessor(processor_t):
         """Setup instructions parameters for IDA."""
         self.instrs_list = []
         for op in opcodes:
-            # TODO: handle extended opcodes
-            self.instrs_list.append(
-                Instr(op[0], op[1], op[2], op[3], op[5], stops=op[7])
-            )
+            instr = Instr(op[0], op[1], op[2], op[3], op[5], stops=op[7])
+            self.instrs_list.append(instr)
+
+            if op[6]:  # extended
+                ext_7bit = (instr.opcode & 0x3000) == 0x3000
+                for ext in opcodes_ext[1:]:  # skip not extended
+                    if ext_7bit and ext[1] >= 0x80:
+                        continue
+                    new_name = instr.name + "'" + ext[0]
+                    new_opcode = instr.opcode | ext[1]
+                    new_mask = instr.mask | ext[2]
+                    self.instrs_list.append(
+                        Instr(new_name, new_opcode, new_mask, instr.size,
+                              instr.operands, ext_operands=ext[5])
+                    )
+
+                if ext_7bit:
+                    instr.mask |= 0x7F
+                else:
+                    instr.mask |= 0xFF
 
         self.instruc = [{ "name": i.name, "feature": i.flags }
                         for i in self.instrs_list]
