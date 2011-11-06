@@ -166,16 +166,25 @@ class GCDSPProcessor(processor_t):
         self._init_instructions()
         self._init_registers()
 
+    def _add_instruction(self, instr):
+        base = instr.opcode & instr.mask
+        limit = instr.mask ^ 0xFFFF
+        for opcode in range(base, base + limit + 1):
+            if (opcode & instr.mask) == instr.opcode:
+                self.instrs_opcode[opcode] = instr
+        self.instrs_list.append(instr)
+
     def _init_instructions(self):
         """Setup instructions parameters for IDA."""
+        self.instrs_opcode = [None] * 0x10000
         self.instrs_list = []
+
         for op in opcodes:
             stops = op[0] in ("RET", "RTI", "HALT", "JMP", "JMPR")
             jumps = op[0].startswith("J")
             calls = op[0].startswith("CALL")
             instr = Instr(op[0], op[1], op[2], op[3], op[5],
                           stops=stops, jumps=jumps, calls=calls)
-            self.instrs_list.append(instr)
 
             if op[6]:  # extended
                 ext_7bit = (instr.opcode & 0x3000) == 0x3000
@@ -185,16 +194,18 @@ class GCDSPProcessor(processor_t):
                     new_name = instr.name + "'" + ext[0]
                     new_opcode = instr.opcode | ext[1]
                     new_mask = instr.mask | ext[2]
-                    self.instrs_list.append(
-                        Instr(new_name, new_opcode, new_mask, instr.size,
-                              instr.operands, ext_operands=ext[5],
-                              stops=stops, jumps=jumps, calls=calls)
-                    )
+                    xinstr = Instr(new_name, new_opcode, new_mask, instr.size,
+                                   instr.operands, ext_operands=ext[5],
+                                   stops=stops, jumps=jumps, calls=calls)
+                    self._add_instruction(xinstr)
 
                 if ext_7bit:
                     instr.mask |= 0x7F
                 else:
                     instr.mask |= 0xFF
+
+            self._add_instruction(instr)
+            self.instrs_list.append(instr)
 
         self.instruc = [{ "name": i.name, "feature": i.flags }
                         for i in self.instrs_list]
@@ -208,14 +219,6 @@ class GCDSPProcessor(processor_t):
         for i, instr in enumerate(self.instrs_list):
             self.instrs_ids[instr.name] = i
             instr.id = i
-
-        # TODO: optimize?
-        self.instrs_opcode = [None] * 0x10000
-        for i in xrange(0x10000):
-            for instr in self.instrs_list:
-                if (i & instr.mask) == instr.opcode:
-                    self.instrs_opcode[i] = instr
-                    break
 
     def _init_registers(self):
         """Setup registers index and special register values."""
