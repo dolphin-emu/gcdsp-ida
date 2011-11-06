@@ -335,10 +335,25 @@ class GCDSPProcessor(processor_t):
         cmd.itype = instr.id
         return cmd.size
 
+    def _emu_operand(self, op):
+        """Emulated using one operand from the instruction."""
+        if op.type == o_mem:
+            ua_dodata2(0, op.addr, op.dtyp)
+            ua_add_dref(0, op.addr, dr_R)  # TODO: dr_W ?
+        elif op.type == o_near:
+            if self.cmd.get_canon_feature() & CF_CALL:
+                fl = fl_CN
+            else:
+                fl = fl_JN
+            ua_add_cref(0, op.addr, fl)
+
     def emu(self):
         """Emulate instruction behavior and create x-refs, interpret operand
         values, etc."""
         instr = self.instrs_list[self.cmd.itype]
+
+        for i in xrange(len(instr.all_operands)):
+            self._emu_operand(self.cmd[i])
 
         if not instr.stops:  # add a link to next instr if code continues
             ua_add_cref(0, self.cmd.ea + self.cmd.size, fl_F)
