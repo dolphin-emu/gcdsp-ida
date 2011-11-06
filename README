@@ -1,0 +1,33 @@
+GC/Wii DSP plugin for IDA
+=========================
+
+This project adds support for the DSP present in the Gamecube and the
+Wii to IDA, the Interactive Disassembler [1]. This allows easy analyze
+of a DSP ucode, handling cross-references, control flow, and so on.
+
+Requirements
+------------
+
+* Python >= 2.6
+* IDA >= 6.1 (other versions may work, not tested)
+* IDAPython >= 1.5.2 (same as IDA, other versions not tested)
+
+How to install?
+---------------
+
+Copy gcdsp.py and gcdsp_generated.py to the "procs/" directory under IDA
+root. If installation worked correctly, you should be able to choose
+"GC/Wii DSP: gcdsp" as the CPU type when opening a new file.
+
+Authors
+-------
+
+* Pierre Bourdon <delroth@lse.epita.fr>
+* Stephane Sezer <stephane@lse.epita.fr>
+
+See AUTHORS for more details.
+
+License
+-------
+
+gcdsp-ida is licensed under the GNU GPLv2. See LICENSE.
