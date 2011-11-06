@@ -210,7 +210,7 @@ class GCDSPProcessor(processor_t):
         "a_sizeof_fmt": "size %s",
     }
 
-    reg_names = regNames = [
+    reg_names = regNames = ["$%s" % n for n in [
         "AR0", "AR1", "AR2", "AR3",
         "IX0", "IX1", "IX2", "IX3",
         "WR0", "WR1", "WR2", "WR3",
@@ -223,7 +223,7 @@ class GCDSPProcessor(processor_t):
         "ACC0", "ACC1",
         "AX0", "AX1",
         "CS", "DS"
-    ]
+    ]]
 
     def __init__(self):
         processor_t.__init__(self)
@@ -292,8 +292,8 @@ class GCDSPProcessor(processor_t):
             self.reg_ids[reg] = i
 
         # Simulate fake segment registers
-        self.regFirstSreg = self.regCodeSreg = self.reg_ids["CS"]
-        self.regLastSreg = self.regDataSreg = self.reg_ids["DS"]
+        self.regFirstSreg = self.regCodeSreg = self.reg_ids["$CS"]
+        self.regLastSreg = self.regDataSreg = self.reg_ids["$DS"]
 
     def notify_init(self, idp_file):
         """Called at module initialization."""
@@ -314,6 +314,7 @@ class GCDSPProcessor(processor_t):
 
     def ana(self):
         """Analyze one instruction and fill the "cmd" instance member."""
+        cmd = self.cmd
         byte1 = self._read_cmd_byte()
         instr = self.instrs_opcode[byte1]
         if instr is None:
@@ -324,12 +325,15 @@ class GCDSPProcessor(processor_t):
         else:
             byte2 = 0
 
-        operands = [cmd.Op1, cmd.Op2, cmd.Op3, cmd.Op4, cmd.Op5, cmd.Op6]
+        operands = [cmd[i] for i in xrange(6)]
+        for to_fill in operands:
+            to_fill.type = o_void
+
         for (to_fill, op) in zip(operands, instr.all_ops_parsed):
             op.parse(to_fill, byte1, byte2)
 
-        self.cmd.itype = instr.id
-        return self.cmd.size
+        cmd.itype = instr.id
+        return cmd.size
 
     def emu(self):
         """Emulate instruction behavior and create x-refs, interpret operand
@@ -343,16 +347,51 @@ class GCDSPProcessor(processor_t):
 
     def outop(self, op):
         """Generates text representation of an instruction operand."""
+        if op.type == o_reg:
+            out_register(self.reg_names[op.reg])
+        elif op.type == o_phrase:
+            out_symbol('@')
+            out_register(self.reg_names[op.reg])
+        elif op.type == o_imm:
+            OutValue(op, OOFW_IMM)
+        elif op.type in [o_near, o_mem]:
+            ok = out_name_expr(op, op.addr, BADADDR)
+            if not ok:
+                out_tagon(COLOR_ERROR)
+                OutLong(op.addr, 16)
+                out_tagoff(COLOR_ERROR)
+                QueueMark(Q_noName, self.cmd.ea)
+        else:
+            return False
         return True
 
     def out(self):
         """Generates text representation of an instruction in the "cmd" inst
         member."""
-        buf = idaapi.init_output_buffer(1024)
+        cmd = self.cmd
+
+        buf = init_output_buffer(1024)
         OutMnem(15)  # max width = 15
 
-        out_one_operand(0)
+        instr = self.instrs_list[cmd.itype]
 
+        in_extended = False
+        for i in xrange(0, 6):
+            if cmd[i].type == o_void:
+                break
+
+            if i != 0:
+                if not in_extended and i >= len(instr.operands):
+                    in_extended = True
+                    OutChar(' ')
+                    out_symbol(':')
+                else:
+                    out_symbol(',')
+                OutChar(' ')
+
+            out_one_operand(i)
+
+        term_output_buffer()
         cvar.gl_comm = 1  # allow comments at end of line
         MakeLine(buf)
 
