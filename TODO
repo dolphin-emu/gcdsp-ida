@@ -1,3 +1,1 @@
 * BLOOP, BLOOPI control flow
-* Some instructions are not decoded correctly:
-    0xF0A1, 0xF1A0 -> LSL16'LS

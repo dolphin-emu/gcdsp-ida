@@ -251,7 +251,7 @@ class GCDSPProcessor(processor_t):
                           stops=stops, jumps=jumps, calls=calls)
 
             if op[6]:  # extended
-                ext_7bit = (instr.opcode & 0x3000) == 0x3000
+                ext_7bit = (instr.opcode & 0xF000) == 0x3000
                 for ext in opcodes_ext[1:]:  # skip not extended
                     if ext_7bit and ext[1] >= 0x80:
                         continue
