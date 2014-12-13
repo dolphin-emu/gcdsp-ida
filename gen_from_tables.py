@@ -7,7 +7,7 @@ gen_from_tables.py
 Generate a Python instruction table from the one provided in DSPTables.cpp
 (part of the Dolphin project).
 
-Copyright (C) 2011 Pierre Bourdon <delroth@lse.epita.fr>
+Copyright (C) 2011 Pierre Bourdon <delroth@dolphin-emu.org>
 
 Licensed under the GPLv2 license, see the LICENSE file at the root of this
 repository.
