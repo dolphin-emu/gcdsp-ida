@@ -219,7 +219,7 @@ class GCDSPProcessor(processor_t):
         "PROD.L", "PROD.M1", "PROD.H", "PROD.M2",
         "AX0.L", "AX1.L", "AX0.H", "AX1.H",
         "AC0.L", "AC1.L", "AC0.M", "AC1.M",
-        "ACC0", "ACC1",
+        "AC0", "AC1",
         "AX0", "AX1",
         "CS", "DS"
     ]]
