@@ -199,7 +199,7 @@ opcodes = [
     ["MULXMV",0xa600,0xe600,1,3,[[OpType.REGM18,1,0,11,0x1000],[OpType.REGM19,1,0,10,0x0800],[OpType.ACC,1,0,8,0x0100]],True,False],
     ["TST",0xb100,0xf700,1,1,[[OpType.ACC,1,0,11,0x0800]],True,False],
     ["MULC",0xc000,0xe700,1,2,[[OpType.ACCM,1,0,12,0x1000],[OpType.REG1A,1,0,11,0x0800]],True,False],
-    ["CMPAR",0xc100,0xe700,1,2,[[OpType.ACC,1,0,12,0x1000],[OpType.REG1A,1,0,11,0x0800]],True,False],
+    ["CMPAR",0xc100,0xe700,1,2,[[OpType.ACC,1,0,11,0x0800],[OpType.REG1A,1,0,12,0x1000]],True,False],
     ["MULCMVZ",0xc200,0xe600,1,3,[[OpType.ACCM,1,0,12,0x1000],[OpType.REG1A,1,0,11,0x0800],[OpType.ACC,1,0,8,0x0100]],True,False],
     ["MULCAC",0xc400,0xe600,1,3,[[OpType.ACCM,1,0,12,0x1000],[OpType.REG1A,1,0,11,0x0800],[OpType.ACC,1,0,8,0x0100]],True,False],
     ["MULCMV",0xc600,0xe600,1,3,[[OpType.ACCM,1,0,12,0x1000],[OpType.REG1A,1,0,11,0x0800],[OpType.ACC,1,0,8,0x0100]],True,False],
