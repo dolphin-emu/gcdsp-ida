@@ -27,5 +27,4 @@ class OpType:
     AX = REG | 0x2200
     REGS_MASK = 0x3f80
 
-    REF = REG | 0x4000
-    PRG = REF | REG
+    PRG = REG | 0x4000
