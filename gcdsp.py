@@ -79,7 +79,7 @@ class Operand:
                     val |= 0xFF00
             res.type = o_mem
             res.dtype = dt_byte
-            res.addr = val
+            res.addr = 0x10000 | val
         else:
             raise ValueError("unhandled type: %04X" % type)
 
